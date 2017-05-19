@@ -9,6 +9,8 @@ TagManager:
   - Exit
   - Food
   - Soda
+  - UI
+  - block
   layers:
   - Default
   - TransparentFX
