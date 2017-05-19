@@ -6,11 +6,29 @@ public class MapGenerator1 : MonoBehaviour {
     int LENGTH = 21;
     int HEIGHT = 3;
     Sprite[] sprites;
+    //public Transform blocks;
+    HashSet<string> blockTypes;
+    string blockType = "Dirt";
 
-    private void Start()
+    private void Start() 
     {
+        blockTypes = new HashSet<string>();
+        blockTypes.Add("Dirt");
+        blockTypes.Add("Vines");
+        blockTypes.Add("Person");
+
         sprites = Resources.LoadAll<Sprite>("Sprites/Scavengers_SpriteSheet");
         makeObstacle();
+    }
+
+    public void setBlockType(string name)
+    {
+        if (!blockTypes.Contains(name))
+        {
+            Debug.Log("Invalid name passed into setBlockType(): " + name);
+            name = "Dirt";
+        }
+        blockType = name;
     }
 
     private void makeRegularField()
@@ -41,6 +59,9 @@ public class MapGenerator1 : MonoBehaviour {
 
     public void makeBlock(int x, int y)
     {
+        GameObject go = (GameObject) Instantiate(Resources.Load(blockType), new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
+        go.name = blockType + " (" + x + ", " + y + ")";
+        /*
         GameObject ob = new GameObject();
         SpriteRenderer renderer = ob.AddComponent<SpriteRenderer>();
         Vector3 pos = new Vector3(x + 0.5f, y + 0.5f);
@@ -53,5 +74,6 @@ public class MapGenerator1 : MonoBehaviour {
         BoxCollider2D boxCollider = ob.AddComponent<BoxCollider2D>();
         boxCollider.sharedMaterial = Resources.Load("Materials/Frictionless", typeof(PhysicsMaterial2D)) as PhysicsMaterial2D;
         ob.tag = "ground";
+        */
     }
 }

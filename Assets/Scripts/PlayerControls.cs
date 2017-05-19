@@ -29,8 +29,7 @@ public class PlayerControls : MonoBehaviour
             Collider2D collider = Physics2D.OverlapCircle(rayCoords, 0.01f);
             //RaycastHit hit;
 
-            //if (Physics.Raycast(ray, out hit, 100))
-            if (collider && collider.gameObject.name.CompareTo("Player") != 0)
+            if (collider && collider.CompareTag("block"))
             {
                 //Object.Destroy(hit.transform.gameObject);
                 Object.Destroy(collider.gameObject);
@@ -38,7 +37,7 @@ public class PlayerControls : MonoBehaviour
             }
             else if (!collider)
             {
-                mg.makeBlock((int) System.Math.Floor(rayCoords.x), (int) System.Math.Floor(rayCoords.y));
+                mg.makeBlock((int)System.Math.Floor(rayCoords.x), (int)System.Math.Floor(rayCoords.y));
                 //print("Missed");
             }
         }
@@ -68,7 +67,7 @@ public class PlayerControls : MonoBehaviour
         if (Input.GetKeyDown("space"))
         {
             // maybe look in the vicinity of the character instead
-            var groundObjects = GameObject.FindGameObjectsWithTag("ground");
+            var groundObjects = GameObject.FindGameObjectsWithTag("block");
             foreach (var ground in groundObjects)
             {
                 var groundCollider = ground.GetComponent<BoxCollider2D>();
