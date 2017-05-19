@@ -47,9 +47,9 @@ public class PlayerControls : MonoBehaviour
     {
         /* Controls (Physics). */
         Vector2 currVelocity = rb.velocity;
-        bool movingLeft = Input.GetKey("left");
-        bool movingRight = Input.GetKey("right");
-        bool idle = !Input.GetKey("left") && !Input.GetKey("right");
+        bool movingLeft = Input.GetKey(KeyCode.A);
+        bool movingRight = Input.GetKey(KeyCode.D);
+        bool idle = !movingLeft && !movingRight;
 
         if (movingLeft)
         {
