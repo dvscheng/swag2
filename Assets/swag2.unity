@@ -698,7 +698,7 @@ GameObject:
   - component: {fileID: 1250535975}
   - component: {fileID: 1250535977}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Hotkey Bar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
