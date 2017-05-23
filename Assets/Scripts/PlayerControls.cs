@@ -125,6 +125,7 @@ public class PlayerControls : MonoBehaviour
     private void makeBullet(float x, float y, Vector2 velocity) 
     {
         GameObject go = (GameObject)Instantiate(Resources.Load("Prefabs/Bullet"), new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
+        go.transform.parent = bullets.transform;
         go.layer = MapGenerator1.BULLET_LAYER;
         Rigidbody2D gorb = go.GetComponent<Rigidbody2D>();
         gorb.velocity = velocity;
