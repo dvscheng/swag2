@@ -8,7 +8,9 @@ public class MapGenerator1 : MonoBehaviour {
     Sprite[] sprites;
     //public Transform blocks;
     HashSet<string> blockTypes;
-    string blockType = "Dirt";
+    string blockType = "Prefabs/Dirt";
+    string path = "Prefabs/";
+    GameObject groundBlocks;
 
     private void Start() 
     {
@@ -16,6 +18,9 @@ public class MapGenerator1 : MonoBehaviour {
         blockTypes.Add("Dirt");
         blockTypes.Add("Vines");
         blockTypes.Add("Person");
+
+        groundBlocks = new GameObject();
+        groundBlocks.name = "Ground blocks";
 
         sprites = Resources.LoadAll<Sprite>("Sprites/Scavengers_SpriteSheet");
         makeObstacle();
@@ -26,9 +31,9 @@ public class MapGenerator1 : MonoBehaviour {
         if (!blockTypes.Contains(name))
         {
             Debug.Log("Invalid name passed into setBlockType(): " + name);
-            name = "Dirt";
+            name = path + "Dirt";
         }
-        blockType = name;
+        blockType = path + name;
     }
 
     private void makeRegularField()
@@ -61,6 +66,7 @@ public class MapGenerator1 : MonoBehaviour {
     {
         GameObject go = (GameObject) Instantiate(Resources.Load(blockType), new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
         go.name = blockType + " (" + x + ", " + y + ")";
+        go.transform.parent = groundBlocks.transform;
         /*
         GameObject ob = new GameObject();
         SpriteRenderer renderer = ob.AddComponent<SpriteRenderer>();
