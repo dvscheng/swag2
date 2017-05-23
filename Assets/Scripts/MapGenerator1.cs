@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MapGenerator1 : MonoBehaviour {
     int LENGTH = 21;
@@ -14,6 +15,8 @@ public class MapGenerator1 : MonoBehaviour {
 
     public static int BULLET_LAYER;
     public static int UI_LAYER;
+
+    public Text blockTypeText;
 
     private void Start() 
     {
@@ -39,6 +42,7 @@ public class MapGenerator1 : MonoBehaviour {
             Debug.Log("Invalid name passed into setBlockType(): " + name);
             name = path + "Dirt";
         }
+        blockTypeText.text = "BlockType: " + name;
         blockType = path + name;
     }
 
