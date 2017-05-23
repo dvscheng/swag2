@@ -12,9 +12,15 @@ public class MapGenerator1 : MonoBehaviour {
     string path = "Prefabs/";
     GameObject groundBlocks;
 
+    public static int BULLET_LAYER;
+    public static int UI_LAYER;
+
     private void Start() 
     {
-        blockTypes = new HashSet<string>();
+        BULLET_LAYER = LayerMask.NameToLayer("Bullet");
+        UI_LAYER = LayerMask.NameToLayer("UI");
+
+    blockTypes = new HashSet<string>();
         blockTypes.Add("Dirt");
         blockTypes.Add("Vines");
         blockTypes.Add("Person");

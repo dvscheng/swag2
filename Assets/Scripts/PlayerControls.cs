@@ -5,13 +5,14 @@ using UnityEngine.UI;
 
 public class PlayerControls : MonoBehaviour
 {
+    GameObject bullets;
     MapGenerator1 mg;
     Rigidbody2D rb;
     SpriteRenderer rendr;
     bool facingRight;
     bool canJump = true;
     int NUM_COLLIDERS = 4;
-    int BULLET_VELOCITY = 5;
+    int BULLET_VELOCITY = 10;
 
     public Text shootModeText;
 
@@ -19,6 +20,8 @@ public class PlayerControls : MonoBehaviour
 
     private void Start()
     {
+        bullets = new GameObject();
+        bullets.name = "Bullets";
         rb = GetComponent<Rigidbody2D>();
         rendr = GetComponent<SpriteRenderer>();
         mg = FindObjectOfType(typeof(MapGenerator1)) as MapGenerator1;
@@ -37,21 +40,26 @@ public class PlayerControls : MonoBehaviour
             Vector3 mousePos = Input.mousePosition;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             Vector2 rayCoords = new Vector2(ray.origin.x, ray.origin.y);
+
+            Collider2D collider = Physics2D.OverlapCircle(rayCoords, 0.01f);
+
             if (shootMode)
             {
-                bool rightSide = rayCoords.x - rb.position.x > 0;
-                float offset = 0.5f;
-                if (!rightSide)
+                bool hitUI = collider && collider.gameObject.layer == 5;
+                //print("hitUI + " + hitUI);
+                if (!hitUI)
                 {
-                    offset = -offset + -1;
+                    bool rightSide = rayCoords.x - rb.position.x > 0;
+                    float offset = 0.5f;
+                    if (!rightSide)
+                    {
+                        offset = -offset + -1;
+                    }
+                    makeBullet(rb.position.x + offset, rb.position.y, calculateNormalVector(rayCoords));
                 }
-                makeBullet(rb.position.x + offset, rb.position.y, calculateNormalVector(rayCoords));
             } 
             else
             {
-                Collider2D collider = Physics2D.OverlapCircle(rayCoords, 0.01f);
-                //RaycastHit hit;
-
                 if (collider && collider.CompareTag("block"))
                 {
                     //Object.Destroy(hit.transform.gameObject);
@@ -117,6 +125,7 @@ public class PlayerControls : MonoBehaviour
     private void makeBullet(float x, float y, Vector2 velocity) 
     {
         GameObject go = (GameObject)Instantiate(Resources.Load("Prefabs/Bullet"), new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
+        go.layer = MapGenerator1.BULLET_LAYER;
         Rigidbody2D gorb = go.GetComponent<Rigidbody2D>();
         gorb.velocity = velocity;
         float angle = Vector2.Angle(Vector2.right, velocity);
