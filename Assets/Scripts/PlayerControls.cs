@@ -9,17 +9,20 @@ public class PlayerControls : MonoBehaviour
     MapGenerator1 mg;
     Rigidbody2D rb;
     SpriteRenderer rendr;
-    bool facingRight;
-    bool canJump = true;
     int NUM_COLLIDERS = 4;
-    int BULLET_VELOCITY = 10;
+    int MAX_INVENTORY_SIZE = 5;
+    int itemIDInFocus;
+    Item[] inventory;
 
-    public Text shootModeText;
+    bool facingRight;
+    int currentSize = 0;
 
-    bool shootMode = false;
+    public Text debugModeText;
+    bool debugMode = false;
 
     private void Start()
     {
+        inventory = new Item[MAX_INVENTORY_SIZE];
         bullets = new GameObject();
         bullets.name = "Bullets";
         rb = GetComponent<Rigidbody2D>();
@@ -31,48 +34,34 @@ public class PlayerControls : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            shootMode = !shootMode;
-            shootModeText.text = "ShootMode: " + shootMode;
+            debugMode = !debugMode;
+            debugModeText.text = "DebugMode: " + debugMode;
         }
+        if (debugMode)
+        {
+            int itemID = -1;
+            if (Input.GetKeyDown(KeyCode.Alpha0))
+                itemID = 0;
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+                itemID = 1;
+            if (itemID >= 0)
+            {
+                Vector3 mousePos = Input.mousePosition;
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                Vector2 rayCoords = new Vector2(ray.origin.x, ray.origin.y);
+                Collider2D collider = Physics2D.OverlapCircle(rayCoords, 0.01f);
+                if (!collider)
+                    MapGenerator1.generateItem((int)System.Math.Floor(rayCoords.x), (int)System.Math.Floor(rayCoords.y), itemID); //hardcoded 0
+            } else
+            {
+                //error
+            }
+        }
+
         /* Mouse checks. */
         if (Input.GetMouseButtonDown(0))
         {
-            Vector3 mousePos = Input.mousePosition;
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            Vector2 rayCoords = new Vector2(ray.origin.x, ray.origin.y);
-
-            Collider2D collider = Physics2D.OverlapCircle(rayCoords, 0.01f);
-
-            if (shootMode)
-            {
-                bool hitUI = collider && collider.gameObject.layer == 5;
-                //print("hitUI + " + hitUI);
-                if (!hitUI)
-                {
-                    bool rightSide = rayCoords.x - rb.position.x > 0;
-                    float offset = 0.5f;
-                    if (!rightSide)
-                    {
-                        offset = -offset + -1;
-                    }
-                    makeBullet(rb.position.x + offset, rb.position.y, calculateNormalVector(rayCoords));
-                }
-            } 
-            else
-            {
-                if (collider && collider.CompareTag("block"))
-                {
-                    //Object.Destroy(hit.transform.gameObject);
-                    Object.Destroy(collider.gameObject);
-                    //print("Collided");
-                }
-                else if (!collider)
-                {
-                    mg.makeBlock((int)System.Math.Floor(rayCoords.x), (int)System.Math.Floor(rayCoords.y));
-                    //print("Missed");
-                }
-            }
-            
+            //inventory[itemIDInFocus].itemOnClickBehavior();
         }
     }
 
@@ -115,21 +104,29 @@ public class PlayerControls : MonoBehaviour
         rendr.flipX = facingRight;
     }
 
-    private Vector2 calculateNormalVector(Vector2 targetPosition)
+    public int addToInventory(Item item)
     {
-        Vector2 heading = targetPosition - rb.position;
-        var distance = heading.magnitude;
-        return heading / distance * BULLET_VELOCITY;
-    }
-
-    private void makeBullet(float x, float y, Vector2 velocity) 
-    {
-        GameObject go = (GameObject)Instantiate(Resources.Load("Prefabs/Bullet"), new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
-        go.transform.parent = bullets.transform;
-        go.layer = MapGenerator1.BULLET_LAYER;
-        Rigidbody2D gorb = go.GetComponent<Rigidbody2D>();
-        gorb.velocity = velocity;
-        float angle = Vector2.Angle(Vector2.right, velocity);
-        go.transform.Rotate(0, 0, angle);
+        print(item.Name);
+        if (currentSize > MAX_INVENTORY_SIZE)
+        {
+            // error
+            return -1;
+        } else if (currentSize == MAX_INVENTORY_SIZE)
+        {
+            // display inventory full
+            return 0;
+        } else
+        {
+            for (int i = 0; i < MAX_INVENTORY_SIZE; i++)
+            {
+                if (inventory[i] == null)
+                {
+                    inventory[i] = item;
+                    break;
+                }
+            }
+            currentSize += 1;
+            return 1;
+        }
     }
 }
