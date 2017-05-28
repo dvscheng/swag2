@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Weapon : Item {
     private int damage;
-    private int weaponType; // 0 = ranged, 1 = melee
+    private int weaponType = 0; // 0 = ranged, 1 = melee
     private int BULLET_VELOCITY = 10;
 
     override
@@ -28,13 +28,14 @@ public class Weapon : Item {
 
         if (!hitUI)
         {
-            bool rightSide = rayCoords.x - gameObject.transform.position.x > 0;
+            GameObject player = GameObject.Find("Player");
+            bool rightSide = rayCoords.x - player.transform.position.x > 0;
             float offset = 0.5f;
             if (!rightSide)
             {
                 offset = -offset + -1;
             }
-            MapGenerator1.makeBullet(gameObject.transform.position.x + offset, gameObject.transform.position.y, calculateNormalVector(rayCoords));
+            MapGenerator1.makeBullet(player.transform.position.x + offset, player.transform.position.y, calculateNormalVector(rayCoords));
         }
     }
 
@@ -45,7 +46,8 @@ public class Weapon : Item {
 
     private Vector2 calculateNormalVector(Vector2 targetPosition)
     {
-        Vector2 gameObPos = gameObject.transform.position;
+        GameObject player = GameObject.Find("Player");
+        Vector2 gameObPos = player.transform.position;
         Vector2 heading = targetPosition - gameObPos;
         var distance = heading.magnitude;
         return heading / distance * BULLET_VELOCITY;

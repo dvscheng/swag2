@@ -6,9 +6,9 @@ using UnityEngine.UI;
 public class MapGenerator1 : MonoBehaviour {
     int LENGTH = 21;
     int HEIGHT = 3;
-    static int ITEMS_ARE_BLOCKS = 5;
+    static int ITEMS_ARE_BLOCKS = 3;
     Sprite[] sprites;
-    static string[] items = {"dirt", "gun"};
+    static string[] items = {"dirt", "vines", "mushroom", "gun", "sword"};
     HashSet<string> blockTypes;
     static string blockType = "Prefabs/Dirt";
     string path = "Prefabs/";
@@ -116,6 +116,23 @@ public class MapGenerator1 : MonoBehaviour {
         SpriteRenderer sr = item.GameObject.GetComponent<SpriteRenderer>();
         sr.sprite = Resources.Load("Sprites/" + item.Name, typeof(Sprite)) as Sprite;
         return item;
+    }
+
+    public static void dropItem(float x, float y, bool facingRight, Item item)
+    {
+        if (facingRight)
+        {
+            x = x + 2;
+        } else
+        {
+            x = x - 2;
+        }
+        GameObject newGameObj = (GameObject) Instantiate(Resources.Load("Prefabs/Items"), new Vector3(x, y, 0), Quaternion.identity);
+        item.GameObject = newGameObj;
+        newGameObj.name = item.Name;
+        newGameObj.GetComponent<ItemPrefabScript>().parentItem = item;
+        SpriteRenderer sr = newGameObj.GetComponent<SpriteRenderer>();
+        sr.sprite = Resources.Load("Sprites/" + item.Name, typeof(Sprite)) as Sprite;
     }
 
     public static void makeBullet(float x, float y, Vector2 velocity)
