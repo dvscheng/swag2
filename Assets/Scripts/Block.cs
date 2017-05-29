@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Block : Item {
 
-
+    /* Creates this block (or destroys a block, for now) at the mouse's position. */
     override
     public void itemOnClickBehavior()
     {
@@ -19,7 +19,7 @@ public class Block : Item {
         }
         else if (!collider)
         {
-            MapGenerator1.makeBlock((int) System.Math.Floor(rayCoords.x), (int) System.Math.Floor(rayCoords.y));
+            MapGenerator1.makeBlock((int) System.Math.Floor(rayCoords.x), (int) System.Math.Floor(rayCoords.y), name);
         }
     }
 }

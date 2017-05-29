@@ -29,5 +29,6 @@ public abstract class Item {
         set { amount = value; }
     }
 
+    /* Executes the specific Item's behaviour. */
     public abstract void itemOnClickBehavior();
 }

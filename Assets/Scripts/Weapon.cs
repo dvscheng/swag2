@@ -7,6 +7,7 @@ public class Weapon : Item {
     private int weaponType = 0; // 0 = ranged, 1 = melee
     private int BULLET_VELOCITY = 10;
 
+    /* Shoots a projectile or melees depending on weaponType. */
     override
     public void itemOnClickBehavior()
     {
@@ -21,7 +22,7 @@ public class Weapon : Item {
             meleeHit();
     }
 
-
+    /* Shoots a bullet at mouse position. */
     private void rangedHit(Collider2D collider, Vector2 rayCoords)
     {
         bool hitUI = collider && collider.gameObject.layer == 5;
@@ -44,6 +45,7 @@ public class Weapon : Item {
         //swag
     }
 
+    /* Swag*/
     private Vector2 calculateNormalVector(Vector2 targetPosition)
     {
         GameObject player = GameObject.Find("Player");

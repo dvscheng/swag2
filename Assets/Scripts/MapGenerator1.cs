@@ -4,22 +4,33 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class MapGenerator1 : MonoBehaviour {
-    int LENGTH = 21;
-    int HEIGHT = 3;
-    static int ITEMS_ARE_BLOCKS = 3;
-    Sprite[] sprites;
-    static string[] items = {"dirt", "vines", "mushroom", "gun", "sword"};
-    HashSet<string> blockTypes;
-    static string blockType = "Prefabs/Dirt";
-    string path = "Prefabs/";
+    /* Groupings. */
     static GameObject groundBlocks;
+    static GameObject playerMadeBlocks;
+    static GameObject droppedItems;
 
+    /* Layers. */
     public static int BULLET_LAYER;
     public static int UI_LAYER;
     public static int ITEM_LAYER;
     public static int PLAYER_LAYER;
 
+    /* Text, Unity-related. */
     public Text blockTypeText;
+
+    /* Dimensions for the arena. */
+    static int LENGTH = 21;
+    static int HEIGHT = 3;
+
+    /* Item system misc. */
+    static int ITEMS_ARE_BLOCKS = 3;
+    static string[] items = {"dirt", "vines", "mushroom", "gun", "sword"};
+
+    // may be obsolete or needs changing
+    HashSet<string> blockTypes;
+    static string blockType = "Prefabs/Dirt";
+    string path = "Prefabs/";
+    Sprite[] sprites;
 
     private void Start() 
     {
@@ -36,10 +47,17 @@ public class MapGenerator1 : MonoBehaviour {
         groundBlocks = new GameObject();
         groundBlocks.name = "Ground blocks";
 
+        playerMadeBlocks = new GameObject();
+        playerMadeBlocks.name = "Player-made blocks";
+
+        droppedItems = new GameObject();
+        droppedItems.name = "Dropped items";
+
         sprites = Resources.LoadAll<Sprite>("Sprites/Scavengers_SpriteSheet");
         makeObstacle();
     }
 
+    /* Sets the type of the block to be set. (change)*/
     public void setBlockType(string name)
     {
         if (!blockTypes.Contains(name))
@@ -50,7 +68,8 @@ public class MapGenerator1 : MonoBehaviour {
         blockTypeText.text = "BlockType: " + name;
         blockType = path + name;
     }
-
+    
+    /* Makes a regular rectangular field of dimensions LENGTH by HEIGHT. */
     private void makeRegularField()
     {
         for (int x = 0; x < LENGTH; x++)
@@ -62,6 +81,8 @@ public class MapGenerator1 : MonoBehaviour {
         }
     }
 
+    /* Makes a regular rectangular field of dimensions LENGTH by HEIGHT and
+     * randomly adds blocks on the top layer as obstacles. */
     private void makeObstacle()
     {
         for (int x = 0; x < LENGTH; x++)
@@ -77,11 +98,16 @@ public class MapGenerator1 : MonoBehaviour {
         }
     }
 
+    /* Used under-the-hood to make terrain. */
     public static void makeBlock(int x, int y)
     {
-        GameObject go = (GameObject) Instantiate(Resources.Load(blockType), new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
-        go.name = blockType + " (" + x + ", " + y + ")";
-        go.transform.parent = groundBlocks.transform;
+        Object obj = Resources.Load(blockType); // defaulted to using dirt prefab
+        if (obj)
+        {
+            GameObject go = (GameObject)Instantiate(obj, new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
+            go.name = blockType + " (" + x + ", " + y + ")";
+            go.transform.parent = groundBlocks.transform;
+        }
         /*
         GameObject ob = new GameObject();
         SpriteRenderer renderer = ob.AddComponent<SpriteRenderer>();
@@ -98,6 +124,39 @@ public class MapGenerator1 : MonoBehaviour {
         */
     }
 
+    /* Used by the player to generate blocks. */
+    public static void makeBlock(int x, int y, string blockName)
+    {
+        print(blockName);
+        if (itemIsBlock(blockName))
+        {
+            Object obj = Resources.Load(blockType); // defaulted to using dirt prefab
+            if (obj)
+            {
+                GameObject go = (GameObject) Instantiate(obj, new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
+                go.name = blockName + " (" + x + ", " + y + ")";
+                go.transform.parent = playerMadeBlocks.transform;
+                
+                // Either use Sprite.Create() or make speparate sprite with 32 ppu
+                SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
+                sr.sprite = Resources.Load("Sprites/" + blockName, typeof(Sprite)) as Sprite;
+            }
+        }
+    }
+
+    /* Returns true if the block name is in the items array AND is of block type. */
+    private static bool itemIsBlock(string blockName)
+    {
+        for (int i = 0; i < ITEMS_ARE_BLOCKS; i++)
+        {
+            if (items[i].Equals(blockName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /* Generates and returns an item given coordinates and an ID. */
     public static Item generateItem(int x, int y, int itemID)
     {
         Item item;
@@ -113,11 +172,13 @@ public class MapGenerator1 : MonoBehaviour {
         item.GameObject = (GameObject) Instantiate(Resources.Load("Prefabs/Items"), new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
         item.Name = items[itemID];
         item.GameObject.GetComponent<ItemPrefabScript>().parentItem = item;
+        item.GameObject.transform.parent = droppedItems.transform;
         SpriteRenderer sr = item.GameObject.GetComponent<SpriteRenderer>();
         sr.sprite = Resources.Load("Sprites/" + item.Name, typeof(Sprite)) as Sprite;
         return item;
     }
 
+    /* Drops the item from the player. facingRight is a player variable. */
     public static void dropItem(float x, float y, bool facingRight, Item item)
     {
         if (facingRight)
@@ -127,18 +188,22 @@ public class MapGenerator1 : MonoBehaviour {
         {
             x = x - 2;
         }
+
         GameObject newGameObj = (GameObject) Instantiate(Resources.Load("Prefabs/Items"), new Vector3(x, y, 0), Quaternion.identity);
         item.GameObject = newGameObj;
         newGameObj.name = item.Name;
         newGameObj.GetComponent<ItemPrefabScript>().parentItem = item;
+        newGameObj.transform.parent = droppedItems.transform;
         SpriteRenderer sr = newGameObj.GetComponent<SpriteRenderer>();
         sr.sprite = Resources.Load("Sprites/" + item.Name, typeof(Sprite)) as Sprite;
     }
 
+    /* Shoots a bullet. */
     public static void makeBullet(float x, float y, Vector2 velocity)
     {
         GameObject go = (GameObject)Instantiate(Resources.Load("Prefabs/Bullet"), new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
-        // go.transform.parent = bullets.transform;
+        go.name = "Bullet Pos: (" + x + ", " + y + ") Velocity: (" + velocity.x + ", " + velocity.y + ")";
+        go.transform.parent = GameObject.Find("Bullets").transform;
         go.layer = BULLET_LAYER;
         Rigidbody2D gorb = go.GetComponent<Rigidbody2D>();
         gorb.velocity = velocity;

@@ -5,37 +5,47 @@ using UnityEngine.UI;
 
 public class PlayerControls : MonoBehaviour
 {
-    GameObject bullets;
+    /* Components. */
     MapGenerator1 mg;
     Rigidbody2D rb;
     SpriteRenderer rendr;
+
+    /* Final parameters. */
     int NUM_COLLIDERS = 4;
     int MAX_INVENTORY_SIZE = 5;
     int NUM_HOTKEYS = 5;
-    int itemIDInFocus;
+
+    /* Inventory management variables. */
+    int hotkeyIDInFocus;
+    int inventoryCurrentSize = 0;
     Item[] inventory;
     GameObject[] hotkeys;
 
-    bool facingRight;
-    int currentSize = 0;
-
+    /* Text, Unity-related. */
     public Text debugModeText;
     public Text currentItemText;
+
+    /* Misc. */
+    bool facingRight;
     bool debugMode = false;
+    GameObject bullets;
 
     private void Start()
     {
+        /* Initialize inventory and hotkeys arrays. */
         inventory = new Item[MAX_INVENTORY_SIZE];
+        hotkeyIDInFocus = -1;   // defaults to no hotkey in focus (-1).
         hotkeys = new GameObject[NUM_HOTKEYS];
-        itemIDInFocus = -1;
-
         for (int i = 0; i < NUM_HOTKEYS; i++)
         {
             hotkeys[i] = GameObject.Find("Hotkey " + (i + 1));
         }
 
+        /* Initialize misc. */
         bullets = new GameObject();
         bullets.name = "Bullets";
+
+        /* Get components. */
         rb = GetComponent<Rigidbody2D>();
         rendr = GetComponent<SpriteRenderer>();
         mg = FindObjectOfType(typeof(MapGenerator1)) as MapGenerator1;
@@ -48,13 +58,20 @@ public class PlayerControls : MonoBehaviour
             debugMode = !debugMode;
             debugModeText.text = "DebugMode: " + debugMode;
         }
+
         if (debugMode)
         {
             int itemID = -1;
-            if (Input.GetKeyDown(KeyCode.Alpha0))
-                itemID = 0;
             if (Input.GetKeyDown(KeyCode.Alpha1))
+                itemID = 0;
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+                itemID = 1;
+            if (Input.GetKeyDown(KeyCode.Alpha3))
                 itemID = 2;
+            if (Input.GetKeyDown(KeyCode.Alpha4))
+                itemID = 3;
+            if (Input.GetKeyDown(KeyCode.Alpha5))
+                itemID = 4;
             if (itemID >= 0)
             {
                 Vector3 mousePos = Input.mousePosition;
@@ -62,57 +79,60 @@ public class PlayerControls : MonoBehaviour
                 Vector2 rayCoords = new Vector2(ray.origin.x, ray.origin.y);
                 Collider2D collider = Physics2D.OverlapCircle(rayCoords, 0.01f);
                 if (!collider)
-                    MapGenerator1.generateItem((int)System.Math.Floor(rayCoords.x), (int)System.Math.Floor(rayCoords.y), itemID); //hardcoded 0
+                    MapGenerator1.generateItem((int)System.Math.Floor(rayCoords.x), (int)System.Math.Floor(rayCoords.y), itemID);
             } else
             {
-                //error
+                //display: choose an item
             }
         }
 
+        /* Inputs (eventually separate for custom keybinds). */
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            itemIDInFocus = 0;
+            hotkeyIDInFocus = 0;
             currentItemText.text = "Selected 1";
         }
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            itemIDInFocus = 1;
+            hotkeyIDInFocus = 1;
             currentItemText.text = "Selected 2";
         }
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
-            itemIDInFocus = 2;
+            hotkeyIDInFocus = 2;
             currentItemText.text = "Selected 3";
         }
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
-            itemIDInFocus = 3;
+            hotkeyIDInFocus = 3;
             currentItemText.text = "Selected 4";
         }
         if (Input.GetKeyDown(KeyCode.Alpha5))
         {
-            itemIDInFocus = 4;
+            hotkeyIDInFocus = 4;
             currentItemText.text = "Selected 5";
         }
         if (Input.GetKeyDown(KeyCode.E))
         {
             dropSelectedItem();
         }
-
-        /* Mouse checks. */
         if (Input.GetMouseButtonDown(0))
         {
-            Item item = inventory[itemIDInFocus];
-            if (item != null)
+            /* If there is a hotkey in focus AND an item in the hotkey, then run the item's behavior. */
+            if (hotkeyIDInFocus >= 0)
             {
-                item.itemOnClickBehavior();
+                Item item = inventory[hotkeyIDInFocus];
+                if (item != null)
+                {
+                    item.itemOnClickBehavior();
+                }
             }
         }
     }
 
     private void FixedUpdate()
     {
-        /* Controls (Physics). */
+        /* Controls moving and jumping (Physics). */
         Vector2 currVelocity = rb.velocity;
         bool movingLeft = Input.GetKey(KeyCode.A);
         bool movingRight = Input.GetKey(KeyCode.D);
@@ -149,13 +169,18 @@ public class PlayerControls : MonoBehaviour
         rendr.flipX = facingRight;
     }
 
+    /* Adds an item to the player's inventory if the inventory is not full.
+     * Returns -1 if the current inventory size is somehow greater than the max size 
+     *  or if an error has occured when adding the item
+     * Returns 0 if the inventory is full.
+     * Returns 1 if successfully added the item to inventory. */
     public int addToInventory(Item item)
     {
-        if (currentSize > MAX_INVENTORY_SIZE)
+        if (inventoryCurrentSize > MAX_INVENTORY_SIZE)
         {
             // error
             return -1;
-        } else if (currentSize == MAX_INVENTORY_SIZE)
+        } else if (inventoryCurrentSize == MAX_INVENTORY_SIZE)
         {
             // display inventory full
             return 0;
@@ -167,40 +192,50 @@ public class PlayerControls : MonoBehaviour
                 {
                     inventory[i] = item;
                     displayOnHotkeyBar(i);
-                    break;
+                    inventoryCurrentSize += 1;
+                    return 1;
                 }
             }
-            currentSize += 1;
-            return 1;
+            return -1;
         }
     }
 
+    /* After checking that there is a hotkey in focus and an item in that slot,
+     *  1. Generates the item in-game. 
+     *  2. Effectively remove the item from inventory. 
+     *  3. Display a blank sprite on the hotkey at the index in focus. 
+     *  4. Decrease the current size of the inventory. */
     public void dropSelectedItem()
     {
-        if (itemIDInFocus != -1)
+        if (hotkeyIDInFocus != -1)
         {
-            Item item = inventory[itemIDInFocus];
+            Item item = inventory[hotkeyIDInFocus];
             if (item != null)
             {
                 MapGenerator1.dropItem(gameObject.transform.position.x, gameObject.transform.position.y, facingRight, item);
-                inventory[itemIDInFocus] = null;
-                displayOnHotkeyBar(itemIDInFocus);
-                currentSize -= 1;
+                inventory[hotkeyIDInFocus] = null;
+                displayOnHotkeyBar(hotkeyIDInFocus);
+                inventoryCurrentSize -= 1;
             }
         }
     }
 
+    /* If the item DOESN'T exist (was dropped or something), set the color of the 
+     *  hotkeyBar slot to grey-ish.
+     * If the item DOES exist, set the color of the slot to white so that the newly
+     *  loaded sprite is not grey-ish. */
     public void displayOnHotkeyBar(int index)
     {
         Item item = inventory[index];
         Image hotkeyImage = hotkeys[index].GetComponent<Button>().image;
         if (item == null)
         {
-            hotkeyImage.color = new Color(0xA3, 0xA3, 0xA3, 0xFF);
+            hotkeyImage.color = new Color(0xA3, 0xA3, 0xA3, 0xFF);  // grey-ish = A3A3A3FF
             hotkeyImage.sprite = null;
-        } else {
+        } else
+        {
             hotkeyImage.color = Color.white;
             hotkeyImage.sprite = Resources.Load("Sprites/" + item.Name, typeof(Sprite)) as Sprite;
-   }
+        }
     }
 }
