@@ -136,8 +136,12 @@ public class MapGenerator1 : MonoBehaviour {
                 GameObject go = (GameObject) Instantiate(obj, new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
                 go.name = blockName + " (" + x + ", " + y + ")";
                 go.transform.parent = playerMadeBlocks.transform;
-                
-                // Either use Sprite.Create() or make speparate sprite with 32 ppu
+
+                if (blockName.Equals("mushroom"))
+                {
+                    go.GetComponent<BoxCollider2D>().sharedMaterial = Resources.Load("Materials/MushroomBlockMaterial", typeof(PhysicsMaterial2D)) as PhysicsMaterial2D;
+                }
+                // Either use Sprite.Create() or make separate sprite with 32 ppu
                 SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
                 sr.sprite = Resources.Load("Sprites/" + blockName, typeof(Sprite)) as Sprite;
             }
