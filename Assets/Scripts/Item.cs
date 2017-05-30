@@ -6,6 +6,7 @@ public abstract class Item {
     protected GameObject gameObject;
     protected string name;
     protected int amount;
+    protected int indexInInventory;
 
     public GameObject GameObject
     {
@@ -19,7 +20,6 @@ public abstract class Item {
         set
         {
             name = value;
-            gameObject.name = value;
         }
     }
 
@@ -29,6 +29,14 @@ public abstract class Item {
         set { amount = value; }
     }
 
+    public int IndexInInventory
+    {
+        get { return indexInInventory; }
+        set { indexInInventory = value; }
+    }
+
     /* Executes the specific Item's behaviour. */
     public abstract void itemOnClickBehavior();
+
+    public abstract bool canStack(string otherItemName);
 }

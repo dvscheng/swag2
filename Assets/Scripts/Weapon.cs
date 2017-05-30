@@ -54,4 +54,10 @@ public class Weapon : Item {
         var distance = heading.magnitude;
         return heading / distance * BULLET_VELOCITY;
     }
+
+    override
+    public bool canStack(string otherItemName)
+    {
+        return false;
+    }
 }

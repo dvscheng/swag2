@@ -160,6 +160,22 @@ public class MapGenerator1 : MonoBehaviour {
         return false;
     }
 
+    /*
+     * Generate GameObject in Unity given position and the Item to generate
+     * */
+    public static Item drawItem(int x, int y, Item item)
+    {
+        GameObject gameObj = (GameObject)Instantiate(Resources.Load("Prefabs/Items"), new Vector3(x, y, 0), Quaternion.identity);
+        gameObj.transform.localScale = new Vector3(0.5f, 0.5f, 1);
+        gameObj.name = item.Name;
+        gameObj.GetComponent<ItemPrefabScript>().parentItem = item;
+        gameObj.transform.parent = droppedItems.transform;
+        SpriteRenderer sr = gameObj.GetComponent<SpriteRenderer>();
+        sr.sprite = Resources.Load("Sprites/" + item.Name, typeof(Sprite)) as Sprite;
+        item.GameObject = gameObj;
+        return item;
+    }
+
     /* Generates and returns an item given coordinates and an ID. */
     public static Item generateItem(int x, int y, int itemID)
     {
@@ -172,14 +188,9 @@ public class MapGenerator1 : MonoBehaviour {
         {
             item = new Weapon();
         }
-
-        item.GameObject = (GameObject) Instantiate(Resources.Load("Prefabs/Items"), new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
         item.Name = items[itemID];
-        item.GameObject.GetComponent<ItemPrefabScript>().parentItem = item;
-        item.GameObject.transform.parent = droppedItems.transform;
-        SpriteRenderer sr = item.GameObject.GetComponent<SpriteRenderer>();
-        sr.sprite = Resources.Load("Sprites/" + item.Name, typeof(Sprite)) as Sprite;
-        return item;
+
+        return drawItem(x, y, item);
     }
 
     /* Drops the item from the player. facingRight is a player variable. */
@@ -193,13 +204,7 @@ public class MapGenerator1 : MonoBehaviour {
             x = x - 2;
         }
 
-        GameObject newGameObj = (GameObject) Instantiate(Resources.Load("Prefabs/Items"), new Vector3(x, y, 0), Quaternion.identity);
-        item.GameObject = newGameObj;
-        newGameObj.name = item.Name;
-        newGameObj.GetComponent<ItemPrefabScript>().parentItem = item;
-        newGameObj.transform.parent = droppedItems.transform;
-        SpriteRenderer sr = newGameObj.GetComponent<SpriteRenderer>();
-        sr.sprite = Resources.Load("Sprites/" + item.Name, typeof(Sprite)) as Sprite;
+        drawItem((int) x, (int) y, item);
     }
 
     /* Shoots a bullet. */

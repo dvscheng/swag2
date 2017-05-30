@@ -180,23 +180,40 @@ public class PlayerControls : MonoBehaviour
         {
             // error
             return -1;
-        } else if (inventoryCurrentSize == MAX_INVENTORY_SIZE)
+        }
+        else
         {
-            // display inventory full
-            return 0;
-        } else
-        {
+            int firstEmptySlotIndex = -1;
             for (int i = 0; i < MAX_INVENTORY_SIZE; i++)
             {
-                if (inventory[i] == null)
+                Item currentItem = inventory[i];
+                if (currentItem == null)
                 {
-                    inventory[i] = item;
-                    displayOnHotkeyBar(i);
-                    inventoryCurrentSize += 1;
+                    if (firstEmptySlotIndex < 0)
+                    {
+                        firstEmptySlotIndex = i;
+                    }
+                }
+                else if (currentItem.canStack(item.Name))
+                {
+                    inventory[i].Amount++;
+                    updateHotKeyItemCount(i);
                     return 1;
                 }
             }
-            return -1;
+            if (firstEmptySlotIndex >= 0)   // found the first empty slot
+            {
+                item.Amount = 1;
+                item.IndexInInventory = firstEmptySlotIndex;
+                inventory[firstEmptySlotIndex] = item;
+                displayOnHotkeyBar(firstEmptySlotIndex);
+                inventoryCurrentSize += 1;
+                return 1;
+            }
+            else // no empty slots and no slot with same item 
+            {
+                return 0;
+            }
         }
     }
 
@@ -213,10 +230,37 @@ public class PlayerControls : MonoBehaviour
             if (item != null)
             {
                 MapGenerator1.dropItem(gameObject.transform.position.x, gameObject.transform.position.y, facingRight, item);
-                inventory[hotkeyIDInFocus] = null;
-                displayOnHotkeyBar(hotkeyIDInFocus);
-                inventoryCurrentSize -= 1;
+                item.Amount--;
+                if (item.Amount == 0)
+                {
+                    deleteItem(hotkeyIDInFocus);
+                } else
+                {
+                    displayOnHotkeyBar(hotkeyIDInFocus);
+                }
             }
+        }
+    }
+
+    public void deleteItem(int index)
+    {
+        inventory[index] = null;
+        inventoryCurrentSize -= 1;
+        displayOnHotkeyBar(index);
+    }
+    
+    /*
+     * Update item count UI on the hotkey bar given an index */
+    public void updateHotKeyItemCount(int index)
+    {
+        Text itemCountText = hotkeys[index].GetComponentInChildren<Text>();
+        if (inventory[index] == null)
+        {
+            itemCountText.text = "0";
+        }
+        else
+        {
+            itemCountText.text = inventory[index].Amount + "";
         }
     }
 
@@ -237,5 +281,6 @@ public class PlayerControls : MonoBehaviour
             hotkeyImage.color = Color.white;
             hotkeyImage.sprite = Resources.Load("Sprites/" + item.Name, typeof(Sprite)) as Sprite;
         }
+        updateHotKeyItemCount(index);
     }
 }
