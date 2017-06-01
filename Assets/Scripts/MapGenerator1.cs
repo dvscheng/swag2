@@ -216,7 +216,8 @@ public class MapGenerator1 : MonoBehaviour {
         go.layer = BULLET_LAYER;
         Rigidbody2D gorb = go.GetComponent<Rigidbody2D>();
         gorb.velocity = velocity;
-        float angle = Vector2.Angle(Vector2.right, velocity);
+        float sign = (velocity.y < 0) ? -1.0f : 1.0f;
+        float angle = Vector2.Angle(Vector2.right, velocity) * sign;
         go.transform.Rotate(0, 0, angle);
     }
 }
