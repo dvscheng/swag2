@@ -9,6 +9,7 @@ public class PlayerControls : MonoBehaviour
     MapGenerator1 mg;
     Rigidbody2D rb;
     SpriteRenderer rendr;
+    GameObject equippedItem;
 
     /* Final parameters. */
     int NUM_COLLIDERS = 4;
@@ -49,6 +50,8 @@ public class PlayerControls : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         rendr = GetComponent<SpriteRenderer>();
         mg = FindObjectOfType(typeof(MapGenerator1)) as MapGenerator1;
+        equippedItem = GameObject.Find("EquippedItem");
+        facingRight = false;
     }
 
     private void Update()
@@ -116,16 +119,22 @@ public class PlayerControls : MonoBehaviour
         {
             dropSelectedItem();
         }
-        if (Input.GetMouseButtonDown(0))
+        if (hotkeyIDInFocus >= 0)
         {
-            /* If there is a hotkey in focus AND an item in the hotkey, then run the item's behavior. */
-            if (hotkeyIDInFocus >= 0)
+            Item item = inventory[hotkeyIDInFocus];
+            if (item != null)
             {
-                Item item = inventory[hotkeyIDInFocus];
-                if (item != null)
+                equippedItem.GetComponent<SpriteRenderer>().sprite = Resources.Load("Sprites/" + item.Name, typeof(Sprite)) as Sprite;
+                if (Input.GetMouseButtonDown(0))
                 {
+                    /* If there is a hotkey in focus AND an item in the hotkey, then run the item's behavior. */
                     item.itemOnClickBehavior();
                 }
+            }
+            else
+            {
+                equippedItem.GetComponent<SpriteRenderer>().sprite = null;
+
             }
         }
     }
@@ -140,10 +149,18 @@ public class PlayerControls : MonoBehaviour
 
         if (movingLeft)
         {
+            if (facingRight)
+            {
+                flipCharacter();
+            }
             facingRight = false;
             rb.velocity = new Vector2(-5, currVelocity.y);
         } else if (movingRight)
         {
+            if (!facingRight)
+            {
+                flipCharacter();
+            }
             facingRight = true;
             rb.velocity = new Vector2(5, currVelocity.y);
         } else if (idle)
@@ -165,8 +182,20 @@ public class PlayerControls : MonoBehaviour
                 }
             }
         }
+    }
 
-        rendr.flipX = facingRight;
+    void flipCharacter()
+    {
+        rendr.flipX = !facingRight;
+        Vector3 currPos = equippedItem.transform.position;
+        float offset = 0.6f;
+        if (facingRight)
+        {
+            offset = -0.6f; 
+        }
+        //equippedItem.transform.position = new Vector3(currPos.x, currPos.y, 0);
+
+
     }
 
     /* Adds an item to the player's inventory if the inventory is not full.
