@@ -186,10 +186,17 @@ public class MapGenerator1 : MonoBehaviour {
         }
         else
         {
-            item = new Weapon();
+            /* hardcoding this, we'll figure out another way later */
+            if (itemID == 4)
+            {
+                item = new Weapon(1);
+            }
+            else
+            {
+                item = new Weapon(0);
+            }
         }
         item.Name = items[itemID];
-
         return drawItem(x, y, item);
     }
 
@@ -218,6 +225,14 @@ public class MapGenerator1 : MonoBehaviour {
         gorb.velocity = velocity;
         float sign = (velocity.y < 0) ? -1.0f : 1.0f;
         float angle = Vector2.Angle(Vector2.right, velocity) * sign;
+        go.transform.Rotate(0, 0, angle);
+    }
+
+    public static void makeSlash(float x, float y, Vector2 vector)
+    {
+        GameObject go = (GameObject)Instantiate(Resources.Load("Prefabs/MeleeSlash"), new Vector3(x + 0.5f, y + 0.5f, 0), Quaternion.identity);
+        float sign = (vector.y < 0) ? -1.0f : 1.0f;
+        float angle = Vector2.Angle(Vector2.right, vector) * sign;
         go.transform.Rotate(0, 0, angle);
     }
 }

@@ -4,8 +4,13 @@ using UnityEngine;
 
 public class Weapon : Item {
     private int damage;
-    private int weaponType = 0; // 0 = ranged, 1 = melee
+    public int weaponType = 0; // 0 = ranged, 1 = melee
     private int BULLET_VELOCITY = 10;
+
+    public Weapon(int wt)
+    {
+        weaponType = wt;
+    }
 
     /* Shoots a projectile or melees depending on weaponType. */
     override
@@ -19,7 +24,7 @@ public class Weapon : Item {
         if (weaponType == 0)
             rangedHit(collider, rayCoords);
         else
-            meleeHit();
+            meleeHit(rayCoords);
     }
 
     /* Shoots a bullet at mouse position. */
@@ -40,9 +45,16 @@ public class Weapon : Item {
         }
     }
 
-    private void meleeHit()
+    private void meleeHit(Vector2 rayCoords)
     {
-        //swag
+        GameObject player = GameObject.Find("Player");
+        bool rightSide = player.GetComponent<SpriteRenderer>().flipX;
+        float offset = 0.5f;
+        if (!rightSide)
+        {
+            offset = -offset + -1;
+        }
+        MapGenerator1.makeSlash(player.transform.position.x + offset, player.transform.position.y, calculateNormalVector(rayCoords));
     }
 
     /* Swag*/
